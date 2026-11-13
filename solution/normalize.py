@@ -94,15 +94,11 @@ def timestamp(value):
 def lead_rows(path, fields):
     with path.open(encoding="utf-8-sig", newline="") as source:
         reader = csv.reader(source, strict=True)
-        columns = {}
-        for index, name in enumerate(next(reader, [])):
-            columns.setdefault(header(name), index)
+        columns = [header(name) for name in next(reader, [])]
         indexes = {}
         for field in fields:
-            aliases = [field["name"], *field.get("aliases", [])]
-            matches = [columns[header(alias)] for alias in aliases if header(alias) in columns]
-            if matches:
-                indexes[field["name"]] = sorted(set(matches))
+            aliases = {header(alias) for alias in (field["name"], *field.get("aliases", []))}
+            indexes[field["name"]] = [i for i, name in enumerate(columns) if name in aliases]
         rows = (row for row in reader if any(cell.strip() for cell in row))
         for number, row in enumerate(rows, start=1):
             yield number, parse_lead(row, fields, indexes)
