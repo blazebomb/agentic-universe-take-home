@@ -122,7 +122,10 @@ def ingest_leads(db, file, schemas, drop_id, privacy, counts):
             "SELECT id, attributes FROM leads WHERE workflow_id = ? AND phone_key = ?",
             (workflow, phone_key),
         ).fetchone()
-        attributes = json.loads(existing["attributes"]) if existing else {}
+        attributes = (
+    json.loads(existing["attributes"]) if existing
+    else dict.fromkeys(field["name"] for field in fields)
+)
         changes = values if existing else defaults | values
         for name, value in changes.items():
             attributes[name] = (
